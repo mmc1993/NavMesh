@@ -27,6 +27,9 @@
     <ClInclude Include="src\math\math.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="src\splitter\splitter.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\window\window.cpp">
@@ -36,6 +39,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="src\editor\editor.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\math\math.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\splitter\splitter.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
