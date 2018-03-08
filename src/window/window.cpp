@@ -2,20 +2,27 @@
 
 #pragma comment (lib, "d2d1.lib")
 
+ID2D1Factory * Window::s_pDxFactory = nullptr;
+
 Window::Window()
 	: _hWnd(0)
-	, _pDxHRT(nullptr)
+	, _pDxRT(nullptr)
 	, _pDxFactory(nullptr)
 { }
 
 Window::~Window()
 {
-	SAFE_RELEASE(_pDxHRT);
-	SAFE_RELEASE(_pDxFactory);
+	SafeRelease(_pDxRT);
+
+	if (SafeRelease(_pDxFactory) == 1)
+	{
+		SafeRelease(s_pDxFactory);
+	}
 }
 
 void Window::Create(const stdstring & title, int x, int y, int w, int h)
 {
+	//	注册窗口类
 	WNDCLASSEX wc = { 0 };
 	wc.cbSize = sizeof(WNDCLASSEX);
 	wc.style = CS_HREDRAW | CS_VREDRAW;
@@ -25,27 +32,32 @@ void Window::Create(const stdstring & title, int x, int y, int w, int h)
 	wc.hIcon = LoadIcon(nullptr, IDI_APPLICATION);
 	wc.hbrBackground = GetStockBrush(BLACK_BRUSH);
 	wc.lpszClassName = TEXT("mmc");
-	if (RegisterClassEx(&wc))
-	{
-		//	创建窗口
-		CreateWindow(TEXT("mmc"), title.c_str(),
-			WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 
-			CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, 0, this);
+	RegisterClassEx(&wc);
 
-		//	初始化DX
-		auto hr = D2D1CreateFactory(D2D1_FACTORY_TYPE::D2D1_FACTORY_TYPE_SINGLE_THREADED, &_pDxFactory);
-		if (SUCCEEDED(hr))
-		{
-			hr = _pDxFactory->CreateHwndRenderTarget(
-				D2D1::RenderTargetProperties(),
-				D2D1::HwndRenderTargetProperties(
-					GetHandle(), D2D1::SizeU(w, h)), &_pDxHRT);
-		}
-		if (SUCCEEDED(hr))
-		{
-			Move(x, y, w, h); 
-			Show(true);
-		}
+	//	创建窗口
+	CreateWindow(TEXT("mmc"), title.c_str(),
+		WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 
+		CW_USEDEFAULT, CW_USEDEFAULT, 0, 0, 0, this);
+
+	//	初始化DX
+	auto hr = nullptr != s_pDxFactory
+		? S_OK : D2D1CreateFactory(D2D1_FACTORY_TYPE::D2D1_FACTORY_TYPE_SINGLE_THREADED, &s_pDxFactory);
+	if (SUCCEEDED(hr))
+	{
+		s_pDxFactory->AddRef();
+
+		_pDxFactory = s_pDxFactory;
+
+		hr = _pDxFactory->CreateHwndRenderTarget(
+			D2D1::RenderTargetProperties(),
+			D2D1::HwndRenderTargetProperties(
+				GetHandle(), D2D1::SizeU(w, h)), &_pDxRT);
+	}
+	//	显示窗口
+	if (SUCCEEDED(hr))
+	{
+		Move(x, y, w, h); 
+		Show(true);
 	}
 }
 
@@ -74,7 +86,6 @@ void Window::Loop()
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
-		UpdateWindow(GetHandle());
 	}
 }
 
@@ -104,6 +115,11 @@ POINT Window::GetPosition()
 	return { rc.left, rc.top };
 }
 
+ID2D1HwndRenderTarget * Window::GetRT()
+{
+	return _pDxRT;
+}
+
 LRESULT Window::WindowMessage(HWND hWnd, UINT uInt, WPARAM wParam, LPARAM lParam)
 {
 	if (WM_CREATE == uInt)
@@ -125,10 +141,10 @@ LRESULT Window::WindowMessage(HWND hWnd, UINT uInt, WPARAM wParam, LPARAM lParam
 		HANDLE_MSG(hWnd, WM_LBUTTONUP, pWindow->Cls_OnLButtonUp);
 		HANDLE_MSG(hWnd, WM_MBUTTONUP, pWindow->Cls_OnMButtonUp);
 		HANDLE_MSG(hWnd, WM_RBUTTONUP, pWindow->Cls_OnRButtonUp);
+		HANDLE_MSG(hWnd, WM_KEYDOWN, pWindow->Cls_OnKeyDown);
 		HANDLE_MSG(hWnd, WM_CLOSE, pWindow->Cls_OnClose);
 		HANDLE_MSG(hWnd, WM_PAINT, pWindow->Cls_OnPaint);
-		HANDLE_MSG(hWnd, WM_KEYDOWN, pWindow->Cls_OnKey);
-		HANDLE_MSG(hWnd, WM_KEYUP, pWindow->Cls_OnKey);
+		HANDLE_MSG(hWnd, WM_KEYUP, pWindow->Cls_OnKeyUp);
 		HANDLE_MSG(hWnd, WM_SIZE, pWindow->Cls_OnSize);
 	}
 	return DefWindowProc(hWnd, uInt, wParam, lParam);
@@ -154,9 +170,14 @@ void Window::Cls_OnMouseWheel(HWND hwnd, int xPos, int yPos, int zDelta, UINT fw
 	OnMouse(WM_MOUSEWHEEL, xPos, yPos, fwKeys, zDelta);
 }
 
-void Window::Cls_OnKey(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT keyFlags)
+void Window::Cls_OnKeyDown(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT keyFlags)
 {
-	OnKeyboard(keyFlags, vk);
+	OnKey(WM_KEYDOWN, keyFlags, vk);
+}
+
+void Window::Cls_OnKeyUp(HWND hwnd, UINT vk, BOOL fDown, int cRepeat, UINT keyFlags)
+{
+	OnKey(WM_KEYUP, keyFlags, vk);
 }
 
 void Window::Cls_OnLButtonUp(HWND hwnd, int x, int y, UINT keyFlags)
@@ -181,19 +202,20 @@ void Window::Cls_OnMouseMove(HWND hwnd, int x, int y, UINT keyFlags)
 
 void Window::Cls_OnSize(HWND hwnd, UINT state, int cx, int cy)
 {
-	_pDxHRT->Resize(D2D1::SizeU(cx, cy));
+	GetRT()->Resize(D2D1::SizeU(cx, cy));
 	OnResize(cx, cy); 
 }
 
 void Window::Cls_OnPaint(HWND hwnd)
 {
-	_pDxHRT->BeginDraw();
-	_pDxHRT->Clear();
-	OnPaint(_pDxHRT);
-	_pDxHRT->EndDraw();
+	GetRT()->BeginDraw();
+	GetRT()->Clear();
+	OnPaint();
+	GetRT()->EndDraw();
 }
 
 void Window::Cls_OnClose(HWND hwnd)
 {
+	DestroyWindow(hwnd);
 	PostQuitMessage(0);
 }

@@ -1,5 +1,11 @@
 #include "window/window.h"
 #include "editor/editor.h"
+#include "../resource.h"
+
+BOOL CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM)
+{
+	return FALSE;
+}
 
 int main()
 {

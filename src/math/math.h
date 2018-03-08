@@ -43,7 +43,7 @@ public:
 	{
 		return { x * other.x, y * other.y };
 	}
-	void Func();
+
 	Vec2 operator*(float other) const
 	{
 		return { x * other, y * other };
@@ -124,11 +124,11 @@ inline bool IsSegmentIntersectTriangle(const Vec2 & a, const Vec2 & b, const Vec
 		|| IsSegmentIntersect(a, b, pt3, pt1);
 }
 
-inline std::tuple<bool, float, Vec2> Circumcircle(const Vec2 & pt1, const Vec2 & pt2, const Vec2 & pt3)
+inline std::optional<std::pair<float, Vec2>> Circumcircle(const Vec2 & pt1, const Vec2 & pt2, const Vec2 & pt3)
 {
 	if ((pt2 - pt1).Cross(pt3 - pt2) == 0.0f)
 	{
-		return { false, 0.0f, Vec2::s_ZERO };
+		return {};
 	}
 	auto t1 = pt1.Dot(pt1);
 	auto t2 = pt2.Dot(pt2);
@@ -139,7 +139,7 @@ inline std::tuple<bool, float, Vec2> Circumcircle(const Vec2 & pt1, const Vec2 &
 		(t3*pt2.x + t2*pt1.x + t1*pt3.x - t1*pt2.x - t2*pt3.x - t3*pt1.x) / tmp / 2
 	);
 	auto r = (pt1 - c).Length();
-	return { true, r, c };
+	return std::make_pair(r, c);
 }
 
 }
