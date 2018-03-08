@@ -33,12 +33,9 @@ void Editor::OnPaint()
 		_pDxBrush->SetColor(D2D1::ColorF(D2D1::ColorF::White));
 		for (const auto & triangle : _mesher.GetTriangles())
 		{
-			GetRT()->DrawLine(D2D1::Point2F(triangle.pt1.x, triangle.pt1.y),
-				D2D1::Point2F(triangle.pt2.x, triangle.pt2.y), _pDxBrush);
-			GetRT()->DrawLine(D2D1::Point2F(triangle.pt2.x, triangle.pt2.y),
-				D2D1::Point2F(triangle.pt3.x, triangle.pt3.y), _pDxBrush);
-			GetRT()->DrawLine(D2D1::Point2F(triangle.pt3.x, triangle.pt3.y),
-				D2D1::Point2F(triangle.pt1.x, triangle.pt1.y), _pDxBrush);
+			GetRT()->DrawLine(D2D1::Point2F(triangle.pt1.x, triangle.pt1.y), D2D1::Point2F(triangle.pt2.x, triangle.pt2.y), _pDxBrush);
+			GetRT()->DrawLine(D2D1::Point2F(triangle.pt2.x, triangle.pt2.y), D2D1::Point2F(triangle.pt3.x, triangle.pt3.y), _pDxBrush);
+			GetRT()->DrawLine(D2D1::Point2F(triangle.pt3.x, triangle.pt3.y), D2D1::Point2F(triangle.pt1.x, triangle.pt1.y), _pDxBrush);
 		}
 
 		_pDxBrush->SetColor(D2D1::ColorF(D2D1::ColorF::Red));
