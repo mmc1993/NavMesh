@@ -18,8 +18,9 @@ public:
 		{ }
 		Mesh(const Mesher::Triangle & t): tri(t), attr(MeshAttr::kOPEN)
 		{ }
-		Mesher::Triangle tri;
 		MeshAttr attr;
+		Mesher::Triangle tri;
+		std::list<const Mesh *> nears;
 	};
 
 public:
@@ -33,12 +34,12 @@ private:
 	virtual void OnPaint() override;
 
 	bool InitBrush();
-	bool OptInitVertex();
-	bool OptRenderMesh();
+	bool OptBuildMesh();
+	bool OptResetVertex();
 	bool OptMeshWindow(int x, int y);
 	bool OptAppendVertex(int x, int y);
 	bool OptRemoveVertex(int x, int y);
-	bool OptWriteToFile(const stdstring & fname);
+	bool OptWriteToFile(const std::string & fname);
 	void OnLButtonUP(int x, int y, u_int key, int wheel);
 	void OnRButtonUP(int x, int y, u_int key, int wheel);
 	void OnMButtonUP(int x, int y, u_int key, int wheel);

@@ -20,7 +20,7 @@ Window::~Window()
 	}
 }
 
-void Window::Create(const stdstring & title, int x, int y, int w, int h)
+void Window::Create(const std::string & title, int x, int y, int w, int h)
 {
 	//	×¢²á´°¿ÚÀà
 	WNDCLASSEX wc = { 0 };

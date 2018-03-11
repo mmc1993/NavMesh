@@ -1,5 +1,6 @@
 #pragma once
 
+#include "third/sformat.h"
 #include <list>
 #include <queue>
 #include <array>
@@ -31,14 +32,9 @@ inline unsigned long SafeRelease(T & p)
 	return ret;
 }
 
+#define Log(fmt, ...)	std::cout << SFormat(fmt, ##__VA_ARGS__) << std::endl;
+
 #define BIND_0(func, ...)			std::bind(&func, ##__VA_ARGS__)
 #define BIND_1(func, ...)			std::bind(&func, ##__VA_ARGS__, std::placeholders::_1)
 #define BIND_2(func, ...)			std::bind(&func, ##__VA_ARGS__, std::placeholders::_1, std::placeholders::_2)
 #define BIND_3(func, ...)			std::bind(&func, ##__VA_ARGS__, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3)
-
-//	unicode ascii
-#if defined(UNICODE)
-#define stdstring		std::wstring
-#else
-#define stdstring		std::string
-#endif

@@ -23,7 +23,7 @@ public:
 		bool operator==(const Triangle & other) const;
 		bool operator!=(const Triangle & other) const;
 		bool IsExistsLine(const Line & line) const;
-		bool QueryCommonLine(const Triangle & triangle, Line * out) const;
+		bool QueryCommonLine(const Triangle & triangle, Line * out = nullptr) const;
 
 		math::Vec2 pt1, pt2, pt3;
 	};

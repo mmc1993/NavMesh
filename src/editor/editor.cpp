@@ -21,8 +21,7 @@ void Editor::OnKey(u_int msg, int flag, int key)
 {
 	if (WM_KEYUP == msg && VK_RETURN == key)
 	{
-		OptRenderMesh();
-		std::cout << "render mesh ok" << std::endl;
+		OptBuildMesh();
 	}
 }
 
@@ -39,7 +38,7 @@ void Editor::OnPaint()
 		}
 
 		_pDxBrush->SetColor(D2D1::ColorF(D2D1::ColorF::Red));
-		for (const auto & mesh : _meshs) 
+		for (const auto & mesh : _meshs)
 		{
 			if (mesh.attr == MeshAttr::kCLOSE)
 			{
@@ -79,33 +78,47 @@ bool Editor::InitBrush()
 	{
 		GetRT()->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &_pDxBrush);
 
-		OptInitVertex();
+		OptResetVertex();
 	}
 	return nullptr != _pDxBrush;
 }
 
-bool Editor::OptInitVertex()
+bool Editor::OptBuildMesh()
 {
+	Log("OptBuildMesh Begin");
+	_meshs.clear();
+	std::copy(_mesher.GetTriangles().begin(),
+			  _mesher.GetTriangles().end(),
+			  std::back_inserter(_meshs));
+	for (auto & mesh : _meshs)
+	{
+		for (const auto & mesh_ : _meshs)
+		{
+			if (mesh.tri.QueryCommonLine(mesh_.tri))
+			{
+				mesh.nears.push_back(&mesh_);
+			}
+		}
+	}
+	Log("OptBuildMesh End");
+	return true;
+}
+
+bool Editor::OptResetVertex()
+{
+	Log("OpResetVertex Begin");
 	auto & size = GetContent();
 	_mesher.Clear();
 	_mesher.SetHelperVertex({math::Vec2(0.0f, 0.0f), math::Vec2((float)size.cx, 0.0f),
 		math::Vec2((float)size.cx, (float)size.cy), math::Vec2(0.0f, (float)size.cy)});
-	OptRenderMesh();
-	return true;
-}
-
-bool Editor::OptRenderMesh()
-{
-	_meshs.clear();
-	std::copy(
-		_mesher.GetTriangles().begin(),
-		_mesher.GetTriangles().end(), 
-		std::back_inserter(_meshs));
+	OptBuildMesh();
+	Log("OpResetVertex End");
 	return true;
 }
 
 bool Editor::OptMeshWindow(int x, int y)
 {
+	Log("OptMeshWindow Begin");
 	auto iter = std::find_if(_meshs.begin(), _meshs.end(), [x, y](const auto & mesh)
 		{
 			return math::IsPointInTriangle(mesh.tri.pt1, mesh.tri.pt2, mesh.tri.pt3, { (float)x, (float)y });
@@ -113,11 +126,13 @@ bool Editor::OptMeshWindow(int x, int y)
 	DialogMeshAttr::Attr newAttr = Dialog::Open<DialogMeshAttr::Attr>(DialogMeshAttr(GetHandle()),
 		DialogMeshAttr::Attr(std::distance(_meshs.begin(), iter), (std::uint8_t)iter->attr));
 	iter->attr = (MeshAttr)newAttr.attr;
+	Log("OptMeshWindow End");
 	return true;
 }
 
 bool Editor::OptAppendVertex(int x, int y)
 {
+	Log("OptAppendVertex Begin");
 	auto downPt = math::Vec2((float)x, (float)y);
 	auto iter = std::find_if(_mesher.GetVertexs().begin(), _mesher.GetVertexs().end(), [&downPt](const auto & pt)
 		{
@@ -128,11 +143,13 @@ bool Editor::OptAppendVertex(int x, int y)
 		_mesher.AppendVertex(math::Vec2((float)x, (float)y));
 		return true;
 	}
+	Log("OptAppendVertex End");
 	return true;
 }
 
 bool Editor::OptRemoveVertex(int x, int y)
 {
+	Log("OptRemoveVertex Begin");
 	auto downPt = math::Vec2((float)x, (float)y);
 	auto iter = std::find_if(_mesher.GetVertexs().begin(), _mesher.GetVertexs().end(), [&downPt](const auto & pt)
 		{
@@ -143,10 +160,11 @@ bool Editor::OptRemoveVertex(int x, int y)
 		_mesher.RemoveVertex(*iter);
 		return true;
 	}
+	Log("OptRemoveVertex End");
 	return false;
 }
 
-bool Editor::OptWriteToFile(const stdstring & fname)
+bool Editor::OptWriteToFile(const std::string & fname)
 {
 	return true;
 }
@@ -166,5 +184,5 @@ void Editor::OnRButtonUP(int x, int y, u_int key, int wheel)
 
 void Editor::OnMButtonUP(int x, int y, u_int key, int wheel)
 {
-	OptInitVertex();
+	OptResetVertex();
 }

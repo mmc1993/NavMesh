@@ -13,7 +13,7 @@ public:
 	Window();
 	virtual ~Window();
 
-	void Create(const stdstring & title, int x, int y, int w, int h);
+	void Create(const std::string & title, int x, int y, int w, int h);
 	void Move(int x, int y, int w, int h);
 	void Show(bool visible);
 	void Loop();

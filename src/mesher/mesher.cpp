@@ -171,19 +171,26 @@ bool Mesher::Triangle::IsExistsLine(const Line & line) const
 
 bool Mesher::Triangle::QueryCommonLine(const Triangle & triangle, Line * out) const
 {
-	std::vector<Line> lines1{
-		{ pt1, pt2 },{ pt2, pt3 },{ pt3, pt1 }
-	};
-	std::vector<Line> lines2{
-		{ triangle.pt1, triangle.pt2 },
-		{ triangle.pt2, triangle.pt3 },
-		{ triangle.pt3, triangle.pt1 }
-	};
-	for (const auto & line1 : lines1)
+	if (this != &triangle)
 	{
-		for (const auto & line2 : lines2)
+		std::vector<Line> lines{
+			{ triangle.pt1, triangle.pt2 },
+			{ triangle.pt2, triangle.pt3 },
+			{ triangle.pt3, triangle.pt1 }
+		};
+		auto iter = std::find(lines.begin(), lines.end(), Line(pt1, pt2));
+		if (iter == lines.end())
 		{
-			if (line1 == line2) { *out = line1; return true; }
+			iter = std::find(lines.begin(), lines.end(), Line(pt2, pt3));
+		}
+		if (iter == lines.end())
+		{
+			iter = std::find(lines.begin(), lines.end(), Line(pt3, pt1));
+		}
+		if (iter != lines.end())
+		{
+			if (out != nullptr) *out = *iter;
+			return true;
 		}
 	}
 	return false;
