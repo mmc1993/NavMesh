@@ -15,12 +15,16 @@ public:
 
 	struct Mesh {
 		Mesh()
-		{ }
+		{ 
+			nears.fill(nullptr);
+		}
 		Mesh(const Mesher::Triangle & t): tri(t), attr(MeshAttr::kOPEN)
-		{ }
+		{
+			nears.fill(nullptr);
+		}
 		MeshAttr attr;
 		Mesher::Triangle tri;
-		std::list<const Mesh *> nears;
+		std::array<const Mesh *, 3> nears;
 	};
 
 public:

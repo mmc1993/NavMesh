@@ -20,9 +20,10 @@ public:
 		Triangle(const math::Vec2 & _pt1 = math::Vec2::s_ZERO,
 			const math::Vec2 & _pt2 = math::Vec2::s_ZERO,
 			const math::Vec2 & _pt3 = math::Vec2::s_ZERO);
+		math::Vec2 GetCenterPoint() const;
+		bool IsExistsLine(const Line & line) const;
 		bool operator==(const Triangle & other) const;
 		bool operator!=(const Triangle & other) const;
-		bool IsExistsLine(const Line & line) const;
 		bool QueryCommonLine(const Triangle & triangle, Line * out = nullptr) const;
 
 		math::Vec2 pt1, pt2, pt3;

@@ -147,6 +147,11 @@ Mesher::Triangle::Triangle(const math::Vec2 & _pt1, const math::Vec2 & _pt2, con
 	, pt3(_pt3)
 { }
 
+math::Vec2 Mesher::Triangle::GetCenterPoint() const
+{
+	return { (pt1.x + pt2.x + pt3.x) / 3, (pt1.y + pt2.y + pt3.y) / 3 };
+}
+
 bool Mesher::Triangle::operator==(const Triangle & other) const
 {
 	return pt1 == other.pt1 && pt2 == other.pt2 && pt3 == other.pt3

@@ -14,6 +14,12 @@ inline void ToString(std::string & ret, T && val)
 	ret.append(std::to_string(std::forward<T>(val)));
 }
 
+template <>
+inline void ToString(std::string & ret, const std::string & val)
+{
+	ret.append(val);
+}
+
 template <int N>
 struct SFormatN {
 	static std::string Format(const char * fmt)

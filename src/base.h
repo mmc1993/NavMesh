@@ -10,6 +10,7 @@
 #include <cassert>
 #include <variant>
 #include <utility>
+#include <fstream>
 #include <optional>
 #include <iterator>
 #include <iostream>

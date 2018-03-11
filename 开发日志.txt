@@ -1,19 +1,2 @@
-左键点击空白处：新增顶点
-
-左键点击顶点：设置属性
-	通过体积：w，h
-	是否通行：block
-
-右键点击顶点：删除顶点
-
-按键S：输出网格
-
-
-- 2*Ax*Rx - 2*Ay*Ry + Ax^2 + Ay^2 = 
-- 2*Bx*Rx - 2*By*Ry + Bx^2 + By^2 
-
-2*Ay*Ry + Ax^2 + Ay^2 - Bx^2 + By^2 - 2*Ax*Rx = 
-- 2*Bx*Rx - 2*By*Ry
-
-
-Rx = (Ax^2 + Ay^2 - Bx^2 - By^2 + 2*(By-Ay) * y)/(2*(Ax-Bx))
+文件格式：
+	<center pt1 pt2 pt3 open near...><center pt1 pt2 pt3 open near...>

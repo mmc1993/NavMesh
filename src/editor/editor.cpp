@@ -19,9 +19,13 @@ void Editor::OnResize(int w, int h)
 
 void Editor::OnKey(u_int msg, int flag, int key)
 {
-	if (WM_KEYUP == msg && VK_RETURN == key)
+	if (WM_KEYUP == msg && 'B' == key)
 	{
 		OptBuildMesh();
+	}
+	else if (WM_KEYUP == msg && 'S' == key)
+	{
+		OptWriteToFile("nav.txt");
 	}
 }
 
@@ -92,11 +96,12 @@ bool Editor::OptBuildMesh()
 			  std::back_inserter(_meshs));
 	for (auto & mesh : _meshs)
 	{
-		for (const auto & mesh_ : _meshs)
+		auto count = 0;
+		for (const auto & iter : _meshs)
 		{
-			if (mesh.tri.QueryCommonLine(mesh_.tri))
+			if (mesh.tri.QueryCommonLine(iter.tri))
 			{
-				mesh.nears.push_back(&mesh_);
+				mesh.nears[count++] = &iter;
 			}
 		}
 	}
@@ -166,6 +171,32 @@ bool Editor::OptRemoveVertex(int x, int y)
 
 bool Editor::OptWriteToFile(const std::string & fname)
 {
+	Log("OptWriteToFile Begin");
+	std::string buffer;
+	for (const auto & mesh : _meshs)
+	{
+		auto snear = std::string("near ");
+		auto count = std::count(mesh.nears.begin(), mesh.nears.end(), nullptr);
+		for (auto i = 0; i != mesh.nears.size() - count; ++i)
+		{
+			snear.append(std::to_string(std::distance(
+				static_cast<const Mesh *>(_meshs.data()), mesh.nears.at(i))));
+			snear.append(" ");
+		}
+		auto cp = mesh.tri.GetCenterPoint();
+		buffer.append(SFormat("< cp {0} {1} , pt1 {2} {3} , pt2 {4} {5} , pt3 {6} {7} , open {8} , {9}>",
+							  cp.x, cp.y, 
+							  mesh.tri.pt1.x, mesh.tri.pt1.y,
+							  mesh.tri.pt2.x, mesh.tri.pt2.y,
+							  mesh.tri.pt3.x, mesh.tri.pt3.y,
+							  (std::uint8_t)mesh.attr, snear));
+	}
+	std::ofstream ofile(fname);
+	ofile	<< std::noskipws 
+			<< buffer 
+			<< std::endl;
+	ofile.close();
+	Log("OptWriteToFile End");
 	return true;
 }
 
