@@ -96,17 +96,31 @@ bool Editor::OptBuildMesh()
 			  std::back_inserter(_meshs));
 	for (auto & mesh : _meshs)
 	{
-		auto count = 0;
-		for (const auto & iter : _meshs)
-		{
-			if (mesh.tri.QueryCommonLine(iter.tri))
-			{
-				mesh.nears[count++] = &iter;
-			}
-		}
+		NearMesh(mesh);
+		SortVertex(mesh);
 	}
 	Log("OptBuildMesh End");
 	return true;
+}
+
+void Editor::NearMesh(Mesh & mesh)
+{
+	auto insert = mesh.nears.begin();
+	for (const auto & iter : _meshs)
+	{
+		if (mesh.tri.QueryCommonLine(iter.tri))
+		{
+			*insert++ = &iter;
+		}
+	}
+}
+
+void Editor::SortVertex(Mesh & mesh)
+{
+	if ((mesh.tri.pt2 - mesh.tri.pt1).Cross(mesh.tri.pt3 - mesh.tri.pt2) < 0)
+	{
+		std::swap(mesh.tri.pt2, mesh.tri.pt3);
+	}
 }
 
 bool Editor::OptResetVertex()
@@ -184,7 +198,7 @@ bool Editor::OptWriteToFile(const std::string & fname)
 			snear.append(" ");
 		}
 		auto cp = mesh.tri.GetCenterPoint();
-		buffer.append(SFormat("< cp {0} {1} , pt1 {2} {3} , pt2 {4} {5} , pt3 {6} {7} , open {8} , {9}>",
+		buffer.append(SFormat("< cp {0} {1} , pt1 {2} {3} , pt2 {4} {5} , pt3 {6} {7} , open {8} , {9}>\n",
 							  cp.x, cp.y, 
 							  mesh.tri.pt1.x, mesh.tri.pt1.y,
 							  mesh.tri.pt2.x, mesh.tri.pt2.y,
@@ -192,9 +206,7 @@ bool Editor::OptWriteToFile(const std::string & fname)
 							  (std::uint8_t)mesh.attr, snear));
 	}
 	std::ofstream ofile(fname);
-	ofile	<< std::noskipws 
-			<< buffer 
-			<< std::endl;
+	ofile << std::noskipws << buffer;
 	ofile.close();
 	Log("OptWriteToFile End");
 	return true;

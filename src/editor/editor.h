@@ -22,6 +22,10 @@ public:
 		{
 			nears.fill(nullptr);
 		}
+		operator const Mesher::Triangle &() const
+		{
+			return tri;
+		}
 		MeshAttr attr;
 		Mesher::Triangle tri;
 		std::array<const Mesh *, 3> nears;
@@ -39,6 +43,8 @@ private:
 
 	bool InitBrush();
 	bool OptBuildMesh();
+	void NearMesh(Mesh & mesh);
+	void SortVertex(Mesh & mesh);
 	bool OptResetVertex();
 	bool OptMeshWindow(int x, int y);
 	bool OptAppendVertex(int x, int y);
