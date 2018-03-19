@@ -1,2 +1,8 @@
 文件格式：
-	<center pt1 pt2 pt3 open near...><center pt1 pt2 pt3 open near...>
+	<center pt1 pt2 pt3 open near...><center pt1 pt2 pt3 near...>
+	
+	
+移除Editor目录，文件迁移到Window目录下
+距离算法优化
+导航网格路径计算
+优化冗余代码

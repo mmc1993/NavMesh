@@ -43,11 +43,6 @@ public:
 			return F() < wp.F();
 		}
 
-		static bool Equal(const WayPoint & a, const std::uint16_t b)
-		{
-			return a.ID == b;
-		}
-
 		std::uint16_t G, H;
 		std::uint16_t ID, parent;
 	};
