@@ -47,7 +47,7 @@ void Mesher::SetHelperVertex(const std::array<math::Vec2, 4> & vertexs)
 
 void Mesher::UpdateVertex(const math::Vec2 & vertex)
 {
-	std::vector<Triangle> commonTriangles;
+	std::vector<math::Triangle> commonTriangles;
 	for (const auto & triangle: _triangles)
 	{
 		auto ret = math::Circumcircle(triangle.pt1, triangle.pt2, triangle.pt3);
@@ -67,9 +67,9 @@ void Mesher::UpdateVertex(const math::Vec2 & vertex)
 		AppendToVector(_lines, { vertex, triangle.pt1 });
 		AppendToVector(_lines, { vertex, triangle.pt2 });
 		AppendToVector(_lines, { vertex, triangle.pt3 });
-		auto triangle1 = Triangle(vertex, triangle.pt1, triangle.pt2);
-		auto triangle2 = Triangle(vertex, triangle.pt2, triangle.pt3);
-		auto triangle3 = Triangle(vertex, triangle.pt3, triangle.pt1);
+		auto triangle1 = math::Triangle(vertex, triangle.pt1, triangle.pt2);
+		auto triangle2 = math::Triangle(vertex, triangle.pt2, triangle.pt3);
+		auto triangle3 = math::Triangle(vertex, triangle.pt3, triangle.pt1);
 		if (IsExistsTriangle(triangle1))
 		{
 			AppendToVector(_triangles, triangle1);
@@ -85,7 +85,7 @@ void Mesher::UpdateVertex(const math::Vec2 & vertex)
 	}
 	else if (commonTriangles.size() > 1)
 	{
-		Line commonLine;
+		math::Line commonLine;
 		for (auto i = 0; i != commonTriangles.size() - 1; ++i)
 		{
 			for (auto j = i + 1; j != commonTriangles.size(); ++j)
@@ -95,7 +95,7 @@ void Mesher::UpdateVertex(const math::Vec2 & vertex)
 				if (triangle1.QueryCommonLine(triangle2, &commonLine))
 				{
 					RemoveFromVector(_lines, commonLine);
-					RemoveFromVector(_triangles, [&commonLine](const Triangle & triangle) 
+					RemoveFromVector(_triangles, [&commonLine](const math::Triangle & triangle) 
 						{ 
 							return triangle.IsExistsLine(commonLine);
 						});
@@ -107,12 +107,12 @@ void Mesher::UpdateVertex(const math::Vec2 & vertex)
 					AppendToVector(_lines, { vertex, triangle2.pt2 });
 					AppendToVector(_lines, { vertex, triangle2.pt3 });
 
-					auto newTriangle1 = Triangle(vertex, triangle1.pt1, triangle1.pt2);
-					auto newTriangle2 = Triangle(vertex, triangle1.pt2, triangle1.pt3);
-					auto newTriangle3 = Triangle(vertex, triangle1.pt3, triangle1.pt1);
-					auto newTriangle4 = Triangle(vertex, triangle2.pt1, triangle2.pt2);
-					auto newTriangle5 = Triangle(vertex, triangle2.pt2, triangle2.pt3);
-					auto newTriangle6 = Triangle(vertex, triangle2.pt3, triangle2.pt1);
+					auto newTriangle1 = math::Triangle(vertex, triangle1.pt1, triangle1.pt2);
+					auto newTriangle2 = math::Triangle(vertex, triangle1.pt2, triangle1.pt3);
+					auto newTriangle3 = math::Triangle(vertex, triangle1.pt3, triangle1.pt1);
+					auto newTriangle4 = math::Triangle(vertex, triangle2.pt1, triangle2.pt2);
+					auto newTriangle5 = math::Triangle(vertex, triangle2.pt2, triangle2.pt3);
+					auto newTriangle6 = math::Triangle(vertex, triangle2.pt3, triangle2.pt1);
 					if (IsExistsTriangle(newTriangle1)) { AppendToVector(_triangles, newTriangle1); }
 					if (IsExistsTriangle(newTriangle2)) { AppendToVector(_triangles, newTriangle2); }
 					if (IsExistsTriangle(newTriangle3)) { AppendToVector(_triangles, newTriangle3); }
@@ -126,11 +126,11 @@ void Mesher::UpdateVertex(const math::Vec2 & vertex)
 	AppendToVector(_vertexs, vertex);
 }
 
-bool Mesher::IsExistsTriangle(const Triangle & triangle)
+bool Mesher::IsExistsTriangle(const math::Triangle & triangle)
 {
-	auto line1 = Line(triangle.pt1, triangle.pt2);
-	auto line2 = Line(triangle.pt2, triangle.pt3);
-	auto line3 = Line(triangle.pt3, triangle.pt1);
+	auto line1 = math::Line(triangle.pt1, triangle.pt2);
+	auto line2 = math::Line(triangle.pt2, triangle.pt3);
+	auto line3 = math::Line(triangle.pt3, triangle.pt1);
 	auto count = 0;
 	for (const auto & line : _lines)
 	{
@@ -139,80 +139,4 @@ bool Mesher::IsExistsTriangle(const Triangle & triangle)
 		if (line3 == line) count |= 0x4;
 	}
 	return count == (0x1 | 0x2 | 0x4);
-}
-
-Mesher::Triangle::Triangle(const math::Vec2 & _pt1, const math::Vec2 & _pt2, const math::Vec2 & _pt3)
-	: pt1(_pt1)
-	, pt2(_pt2)
-	, pt3(_pt3)
-{ }
-
-math::Vec2 Mesher::Triangle::GetCenterPoint() const
-{
-	return { (pt1.x + pt2.x + pt3.x) / 3, (pt1.y + pt2.y + pt3.y) / 3 };
-}
-
-bool Mesher::Triangle::operator==(const Triangle & other) const
-{
-	return pt1 == other.pt1 && pt2 == other.pt2 && pt3 == other.pt3
-		|| pt1 == other.pt1 && pt2 == other.pt3 && pt3 == other.pt2
-		|| pt1 == other.pt2 && pt2 == other.pt1 && pt3 == other.pt3
-		|| pt1 == other.pt2 && pt2 == other.pt3 && pt3 == other.pt1
-		|| pt1 == other.pt3 && pt2 == other.pt1 && pt3 == other.pt2
-		|| pt1 == other.pt3 && pt2 == other.pt2 && pt3 == other.pt1;
-}
-
-bool Mesher::Triangle::operator!=(const Triangle & other) const
-{
-	return !(*this == other);
-}
-
-bool Mesher::Triangle::IsExistsLine(const Line & line) const
-{
-	return Line(pt1, pt2) == line
-		|| Line(pt2, pt3) == line
-		|| Line(pt3, pt1) == line;
-}
-
-bool Mesher::Triangle::QueryCommonLine(const Triangle & triangle, Line * out) const
-{
-	if (this != &triangle)
-	{
-		std::vector<Line> lines{
-			{ triangle.pt1, triangle.pt2 },
-			{ triangle.pt2, triangle.pt3 },
-			{ triangle.pt3, triangle.pt1 }
-		};
-		auto iter = std::find(lines.begin(), lines.end(), Line(pt1, pt2));
-		if (iter == lines.end())
-		{
-			iter = std::find(lines.begin(), lines.end(), Line(pt2, pt3));
-		}
-		if (iter == lines.end())
-		{
-			iter = std::find(lines.begin(), lines.end(), Line(pt3, pt1));
-		}
-		if (iter != lines.end())
-		{
-			if (out != nullptr) *out = *iter;
-			return true;
-		}
-	}
-	return false;
-}
-
-Mesher::Line::Line(const math::Vec2 & _pt1, const math::Vec2 & _pt2)
-	: pt1(_pt1)
-	, pt2(_pt2)
-{ }
-
-bool Mesher::Line::operator==(const Line & other) const
-{
-	return pt1 == other.pt1 && pt2 == other.pt2
-		|| pt1 == other.pt2 && pt2 == other.pt1;
-}
-
-bool Mesher::Line::operator!=(const Line & other) const
-{
-	return !(*this == other);
 }

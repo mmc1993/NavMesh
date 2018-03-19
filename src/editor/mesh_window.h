@@ -3,7 +3,7 @@
 #include "../window/window.h"
 #include "../mesher/mesher.h"
 
-class Editor : public Window {
+class MeshWindow : public Window {
 public:
 	static const float s_VERTEX_SIZE;
 	static const float s_VERTEX_SPAC;
@@ -18,22 +18,22 @@ public:
 		{ 
 			nears.fill(nullptr);
 		}
-		Mesh(const Mesher::Triangle & t): tri(t), attr(MeshAttr::kOPEN)
+		Mesh(const math::Triangle & t): tri(t), attr(MeshAttr::kOPEN)
 		{
 			nears.fill(nullptr);
 		}
-		operator const Mesher::Triangle &() const
+		operator const math::Triangle &() const
 		{
 			return tri;
 		}
 		MeshAttr attr;
-		Mesher::Triangle tri;
+		math::Triangle tri;
 		std::array<const Mesh *, 3> nears;
 	};
 
 public:
-	Editor();
-	~Editor();
+	MeshWindow();
+	~MeshWindow();
 
 private:
 	virtual void OnMouse(u_int msg, int x, int y, u_int key, int wheel) override;

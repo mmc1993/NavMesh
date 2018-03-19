@@ -1,5 +1,6 @@
 #include "window/window.h"
-#include "editor/editor.h"
+#include "editor/mesh_window.h"
+#include "editor/astar_window.h"
 #include "../resource.h"
 
 BOOL CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM)
@@ -9,9 +10,13 @@ BOOL CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM)
 
 int main()
 {
-	Editor editor;
-	editor.Create(TEXT("网格导航"), 100, 100, 800, 400);
-	editor.Loop();
+	MeshWindow meshWindow;
+	meshWindow.Create("网格导航", 100, 100, 800, 400);
+	meshWindow.Loop();
+
+	//AStarWindow astarWindow;
+	//astarWindow.Create("A*", 100, 100, 800, 400);
+	//astarWindow.Loop();
 	return 0;
 }
 

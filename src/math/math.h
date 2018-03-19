@@ -142,6 +142,90 @@ inline std::optional<std::pair<float, Vec2>> Circumcircle(const Vec2 & pt1, cons
 	return std::make_pair(r, c);
 }
 
+class Line {
+public:
+	Line(const math::Vec2 & _pt1 = math::Vec2::s_ZERO,
+		 const math::Vec2 & _pt2 = math::Vec2::s_ZERO) : pt1(_pt1), pt2(_pt2)
+	{ }
+
+	bool operator==(const Line & other) const
+	{
+		return pt1 == other.pt1 && pt2 == other.pt2
+			|| pt1 == other.pt2 && pt2 == other.pt1;
+	}
+
+	bool operator!=(const Line & other) const
+	{
+		return !(*this == other);
+	}
+
+	math::Vec2 pt1, pt2;
+};
+
+class Triangle {
+public:
+	Triangle(const math::Vec2 & _pt1 = math::Vec2::s_ZERO,
+			 const math::Vec2 & _pt2 = math::Vec2::s_ZERO,
+			 const math::Vec2 & _pt3 = math::Vec2::s_ZERO) : pt1(_pt1), pt2(_pt2), pt3(_pt3)
+	{ }
+
+	math::Vec2 GetCenterPoint() const
+	{
+		return { (pt1.x + pt2.x + pt3.x) / 3, (pt1.y + pt2.y + pt3.y) / 3 };
+	}
+
+	bool IsExistsLine(const Line & line) const
+	{
+		return Line(pt1, pt2) == line
+			|| Line(pt2, pt3) == line
+			|| Line(pt3, pt1) == line;
+	}
+
+	bool operator==(const Triangle & other) const
+	{
+		return pt1 == other.pt1 && pt2 == other.pt2 && pt3 == other.pt3
+			|| pt1 == other.pt1 && pt2 == other.pt3 && pt3 == other.pt2
+			|| pt1 == other.pt2 && pt2 == other.pt1 && pt3 == other.pt3
+			|| pt1 == other.pt2 && pt2 == other.pt3 && pt3 == other.pt1
+			|| pt1 == other.pt3 && pt2 == other.pt1 && pt3 == other.pt2
+			|| pt1 == other.pt3 && pt2 == other.pt2 && pt3 == other.pt1;
+	}
+
+	bool operator!=(const Triangle & other) const
+	{
+		return !(*this == other);
+	}
+
+	bool QueryCommonLine(const Triangle & triangle, Line * out = nullptr) const
+	{
+		if (this != &triangle)
+		{
+			std::vector<Line> lines{
+				{ triangle.pt1, triangle.pt2 },
+				{ triangle.pt2, triangle.pt3 },
+				{ triangle.pt3, triangle.pt1 }
+			};
+			auto iter = std::find(lines.begin(), lines.end(), Line(pt1, pt2));
+			if (iter == lines.end())
+			{
+				iter = std::find(lines.begin(), lines.end(), Line(pt2, pt3));
+			}
+			if (iter == lines.end())
+			{
+				iter = std::find(lines.begin(), lines.end(), Line(pt3, pt1));
+			}
+			if (iter != lines.end())
+			{
+				if (out != nullptr) *out = *iter;
+				return true;
+			}
+		}
+		return false;
+	}
+
+	math::Vec2 pt1, pt2, pt3;
+};
+
 }
 
 #pragma pop_macro("min")

@@ -1,23 +1,23 @@
-#include "editor.h"
+#include "mesh_window.h"
 #include "../dialog/dialog.h"
 
-const float Editor::s_VERTEX_SIZE = 5.0f;
-const float Editor::s_VERTEX_SPAC = 100.0f;
+const float MeshWindow::s_VERTEX_SIZE = 5.0f;
+const float MeshWindow::s_VERTEX_SPAC = 100.0f;
 
-Editor::Editor() : _pDxBrush(nullptr)
+MeshWindow::MeshWindow() : _pDxBrush(nullptr)
 {
 }
 
-Editor::~Editor()
+MeshWindow::~MeshWindow()
 {
 	SafeRelease(_pDxBrush);
 }
 
-void Editor::OnResize(int w, int h)
+void MeshWindow::OnResize(int w, int h)
 {
 }
 
-void Editor::OnKey(u_int msg, int flag, int key)
+void MeshWindow::OnKey(u_int msg, int flag, int key)
 {
 	if (WM_KEYUP == msg && 'B' == key)
 	{
@@ -29,7 +29,7 @@ void Editor::OnKey(u_int msg, int flag, int key)
 	}
 }
 
-void Editor::OnPaint()
+void MeshWindow::OnPaint()
 {
 	if (InitBrush())
 	{
@@ -60,7 +60,7 @@ void Editor::OnPaint()
 	}
 }
 
-void Editor::OnMouse(u_int msg, int x, int y, u_int key, int wheel)
+void MeshWindow::OnMouse(u_int msg, int x, int y, u_int key, int wheel)
 {
 	switch (msg)
 	{
@@ -76,7 +76,7 @@ void Editor::OnMouse(u_int msg, int x, int y, u_int key, int wheel)
 	}
 }
 
-bool Editor::InitBrush()
+bool MeshWindow::InitBrush()
 {
 	if (nullptr == _pDxBrush)
 	{
@@ -87,7 +87,7 @@ bool Editor::InitBrush()
 	return nullptr != _pDxBrush;
 }
 
-bool Editor::OptBuildMesh()
+bool MeshWindow::OptBuildMesh()
 {
 	Log("OptBuildMesh Begin");
 	_meshs.clear();
@@ -103,7 +103,7 @@ bool Editor::OptBuildMesh()
 	return true;
 }
 
-void Editor::NearMesh(Mesh & mesh)
+void MeshWindow::NearMesh(Mesh & mesh)
 {
 	auto insert = mesh.nears.begin();
 	for (const auto & iter : _meshs)
@@ -115,7 +115,7 @@ void Editor::NearMesh(Mesh & mesh)
 	}
 }
 
-void Editor::SortVertex(Mesh & mesh)
+void MeshWindow::SortVertex(Mesh & mesh)
 {
 	if ((mesh.tri.pt2 - mesh.tri.pt1).Cross(mesh.tri.pt3 - mesh.tri.pt2) < 0)
 	{
@@ -123,7 +123,7 @@ void Editor::SortVertex(Mesh & mesh)
 	}
 }
 
-bool Editor::OptResetVertex()
+bool MeshWindow::OptResetVertex()
 {
 	Log("OpResetVertex Begin");
 	auto & size = GetContent();
@@ -135,7 +135,7 @@ bool Editor::OptResetVertex()
 	return true;
 }
 
-bool Editor::OptMeshWindow(int x, int y)
+bool MeshWindow::OptMeshWindow(int x, int y)
 {
 	Log("OptMeshWindow Begin");
 	auto iter = std::find_if(_meshs.begin(), _meshs.end(), [x, y](const auto & mesh)
@@ -149,7 +149,7 @@ bool Editor::OptMeshWindow(int x, int y)
 	return true;
 }
 
-bool Editor::OptAppendVertex(int x, int y)
+bool MeshWindow::OptAppendVertex(int x, int y)
 {
 	Log("OptAppendVertex Begin");
 	auto downPt = math::Vec2((float)x, (float)y);
@@ -166,7 +166,7 @@ bool Editor::OptAppendVertex(int x, int y)
 	return true;
 }
 
-bool Editor::OptRemoveVertex(int x, int y)
+bool MeshWindow::OptRemoveVertex(int x, int y)
 {
 	Log("OptRemoveVertex Begin");
 	auto downPt = math::Vec2((float)x, (float)y);
@@ -183,7 +183,7 @@ bool Editor::OptRemoveVertex(int x, int y)
 	return false;
 }
 
-bool Editor::OptWriteToFile(const std::string & fname)
+bool MeshWindow::OptWriteToFile(const std::string & fname)
 {
 	Log("OptWriteToFile Begin");
 	std::string buffer;
@@ -212,12 +212,12 @@ bool Editor::OptWriteToFile(const std::string & fname)
 	return true;
 }
 
-void Editor::OnLButtonUP(int x, int y, u_int key, int wheel)
+void MeshWindow::OnLButtonUP(int x, int y, u_int key, int wheel)
 {
 	OptAppendVertex(x, y);
 }
 
-void Editor::OnRButtonUP(int x, int y, u_int key, int wheel)
+void MeshWindow::OnRButtonUP(int x, int y, u_int key, int wheel)
 {
 	if (!OptRemoveVertex(x, y))
 	{
@@ -225,7 +225,7 @@ void Editor::OnRButtonUP(int x, int y, u_int key, int wheel)
 	}
 }
 
-void Editor::OnMButtonUP(int x, int y, u_int key, int wheel)
+void MeshWindow::OnMButtonUP(int x, int y, u_int key, int wheel)
 {
 	OptResetVertex();
 }
