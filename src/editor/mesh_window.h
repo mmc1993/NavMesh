@@ -16,11 +16,11 @@ public:
 	struct Mesh {
 		Mesh()
 		{ 
-			nears.fill(nullptr);
+			links.fill(nullptr);
 		}
 		Mesh(const math::Triangle & t): tri(t), attr(MeshAttr::kOPEN)
 		{
-			nears.fill(nullptr);
+			links.fill(nullptr);
 		}
 		operator const math::Triangle &() const
 		{
@@ -28,7 +28,7 @@ public:
 		}
 		MeshAttr attr;
 		math::Triangle tri;
-		std::array<const Mesh *, 3> nears;
+		std::array<const Mesh *, 3> links;
 	};
 
 public:
@@ -42,14 +42,15 @@ private:
 	virtual void OnPaint() override;
 
 	bool InitBrush();
-	bool OptBuildMesh();
-	void NearMesh(Mesh & mesh);
+	bool OptInitMesh();
+	bool OptBakeMesh();
 	void SortVertex(Mesh & mesh);
-	bool OptResetVertex();
-	bool OptMeshWindow(int x, int y);
+	void LinkMesh(const std::vector<Mesh> & meshs, Mesh & mesh);
+	void SaveMesh(const std::vector<Mesh> & meshs, const std::string & fname);
+	bool OptMeshClear();
+	bool OptMeshModify(int x, int y);
 	bool OptAppendVertex(int x, int y);
 	bool OptRemoveVertex(int x, int y);
-	bool OptWriteToFile(const std::string & fname);
 	void OnLButtonUP(int x, int y, u_int key, int wheel);
 	void OnRButtonUP(int x, int y, u_int key, int wheel);
 	void OnMButtonUP(int x, int y, u_int key, int wheel);

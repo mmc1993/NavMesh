@@ -14,7 +14,7 @@ public:
 	}
 
 public:
-	Dialog(HWND hwnd): _hWnd(hwnd)
+	Dialog(HWND parent): _hParent(parent)
 	{ }
 
 	virtual ~Dialog()
@@ -22,11 +22,11 @@ public:
 
 	HWND GetParentWindow()
 	{
-		return _hWnd;
+		return _hParent;
 	}
 
 private:
-	HWND _hWnd;
+	HWND _hParent;
 
 };
 
@@ -42,13 +42,13 @@ public:
 		std::uint8_t attr;
 	};
 
-	DialogMeshAttr(HWND hwnd): Dialog(hwnd)
+	DialogMeshAttr(HWND parent): Dialog(parent)
 	{ }
 
 	Attr Open(const Attr & attr)
 	{
 		auto ret = attr;
-		DialogBoxParam(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDD_MESHATTR), 0, WndProc, (LPARAM)&ret);
+		DialogBoxParam(GetModuleHandle(nullptr), MAKEINTRESOURCE(IDD_MESHATTR), GetParentWindow(), WndProc, (LPARAM)&ret);
 		return ret;
 	}
 

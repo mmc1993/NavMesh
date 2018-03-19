@@ -30,6 +30,9 @@
     <ClCompile Include="src\editor\mesh_window.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\astar\astar.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\base.h">

@@ -19,13 +19,14 @@ void MeshWindow::OnResize(int w, int h)
 
 void MeshWindow::OnKey(u_int msg, int flag, int key)
 {
-	if (WM_KEYUP == msg && 'B' == key)
+	if (WM_KEYUP == msg)
 	{
-		OptBuildMesh();
-	}
-	else if (WM_KEYUP == msg && 'S' == key)
-	{
-		OptWriteToFile("nav.txt");
+		//	初始网格, 烘培网格 & 保存网格
+		switch (key) 
+		{
+		case 'I': OptInitMesh(); break;
+		case 'B': OptBakeMesh(); break;
+		}
 	}
 }
 
@@ -82,31 +83,42 @@ bool MeshWindow::InitBrush()
 	{
 		GetRT()->CreateSolidColorBrush(D2D1::ColorF(D2D1::ColorF::White), &_pDxBrush);
 
-		OptResetVertex();
+		OptMeshClear();
 	}
 	return nullptr != _pDxBrush;
 }
 
-bool MeshWindow::OptBuildMesh()
+bool MeshWindow::OptInitMesh()
 {
-	Log("OptBuildMesh Begin");
 	_meshs.clear();
 	std::copy(_mesher.GetTriangles().begin(),
 			  _mesher.GetTriangles().end(),
 			  std::back_inserter(_meshs));
-	for (auto & mesh : _meshs)
-	{
-		NearMesh(mesh);
-		SortVertex(mesh);
-	}
-	Log("OptBuildMesh End");
+	Log("OptInitMesh...");
 	return true;
 }
 
-void MeshWindow::NearMesh(Mesh & mesh)
+bool MeshWindow::OptBakeMesh()
 {
-	auto insert = mesh.nears.begin();
-	for (const auto & iter : _meshs)
+	std::vector<Mesh> meshs;
+	std::copy_if(_meshs.begin(), _meshs.end(), std::back_inserter(meshs), [](const Mesh & mesh)
+				 {
+					 return mesh.attr == MeshAttr::kOPEN;
+				 });
+	std::for_each(meshs.begin(), meshs.end(), [this, &meshs](Mesh & mesh) 
+				  { 
+					  LinkMesh(meshs, mesh);
+					  SortVertex(mesh);
+				  });
+	SaveMesh(meshs, "nav.txt");
+	Log("OptBakeMesh...");
+	return true;
+}
+
+void MeshWindow::LinkMesh(const std::vector<Mesh> & meshs, Mesh & mesh)
+{
+	auto insert = mesh.links.begin();
+	for (const auto & iter : meshs)
 	{
 		if (mesh.tri.QueryCommonLine(iter.tri))
 		{
@@ -123,21 +135,45 @@ void MeshWindow::SortVertex(Mesh & mesh)
 	}
 }
 
-bool MeshWindow::OptResetVertex()
+void MeshWindow::SaveMesh(const std::vector<Mesh>& meshs, const std::string & fname)
 {
-	Log("OpResetVertex Begin");
+	std::string buffer;
+	for (const auto & mesh : meshs)
+	{
+		auto slink = std::string("link ");
+		auto count = std::count(mesh.links.begin(), mesh.links.end(), nullptr);
+		for (auto i = 0; i != mesh.links.size() - count; ++i)
+		{
+			slink.append(std::to_string(std::distance(
+				static_cast<const Mesh *>(meshs.data()), mesh.links.at(i))));
+			slink.append(" ");
+		}
+		auto cp = mesh.tri.GetCenterPoint();
+		buffer.append(SFormat("< cp {0} {1} , pt1 {2} {3} , pt2 {4} {5} , pt3 {6} {7} , {8}>\n",
+							  cp.x, cp.y,
+							  mesh.tri.pt1.x, mesh.tri.pt1.y,
+							  mesh.tri.pt2.x, mesh.tri.pt2.y,
+							  mesh.tri.pt3.x, mesh.tri.pt3.y,
+							  slink));
+	}
+	std::ofstream ofile(fname);
+	ofile << std::noskipws << buffer;
+	ofile.close();
+}
+
+bool MeshWindow::OptMeshClear()
+{
 	auto & size = GetContent();
 	_mesher.Clear();
 	_mesher.SetHelperVertex({math::Vec2(0.0f, 0.0f), math::Vec2((float)size.cx, 0.0f),
 		math::Vec2((float)size.cx, (float)size.cy), math::Vec2(0.0f, (float)size.cy)});
-	OptBuildMesh();
-	Log("OpResetVertex End");
+	OptInitMesh();
+	Log("OptMeshClear...");
 	return true;
 }
 
-bool MeshWindow::OptMeshWindow(int x, int y)
+bool MeshWindow::OptMeshModify(int x, int y)
 {
-	Log("OptMeshWindow Begin");
 	auto iter = std::find_if(_meshs.begin(), _meshs.end(), [x, y](const auto & mesh)
 		{
 			return math::IsPointInTriangle(mesh.tri.pt1, mesh.tri.pt2, mesh.tri.pt3, { (float)x, (float)y });
@@ -145,71 +181,46 @@ bool MeshWindow::OptMeshWindow(int x, int y)
 	DialogMeshAttr::Attr newAttr = Dialog::Open<DialogMeshAttr::Attr>(DialogMeshAttr(GetHandle()),
 		DialogMeshAttr::Attr(std::distance(_meshs.begin(), iter), (std::uint8_t)iter->attr));
 	iter->attr = (MeshAttr)newAttr.attr;
-	Log("OptMeshWindow End");
+	Log("OptMeshModify...");
 	return true;
 }
 
 bool MeshWindow::OptAppendVertex(int x, int y)
 {
-	Log("OptAppendVertex Begin");
+	auto result = false;
 	auto downPt = math::Vec2((float)x, (float)y);
-	auto iter = std::find_if(_mesher.GetVertexs().begin(), _mesher.GetVertexs().end(), [&downPt](const auto & pt)
-		{
-			return (downPt - pt).Length() <= s_VERTEX_SPAC;
-		});
+	auto iter = std::find_if(_mesher.GetVertexs().begin(), 
+							 _mesher.GetVertexs().end(), 
+							 [&downPt](const auto & pt)
+							 {
+								 return (downPt - pt).Length() <= s_VERTEX_SPAC;
+							 });
 	if (iter == _mesher.GetVertexs().end())
 	{
 		_mesher.AppendVertex(math::Vec2((float)x, (float)y));
-		return true;
+		result = true;
 	}
-	Log("OptAppendVertex End");
-	return true;
+	Log("OptAppendVertex...");
+	return result;
 }
 
 bool MeshWindow::OptRemoveVertex(int x, int y)
 {
-	Log("OptRemoveVertex Begin");
+	auto result = false;
 	auto downPt = math::Vec2((float)x, (float)y);
-	auto iter = std::find_if(_mesher.GetVertexs().begin(), _mesher.GetVertexs().end(), [&downPt](const auto & pt)
-		{
-			return (downPt - pt).Length() <= s_VERTEX_SIZE;
-		});
+	auto iter = std::find_if(_mesher.GetVertexs().begin(), 
+							 _mesher.GetVertexs().end(), 
+							 [&downPt](const auto & pt)
+							 {
+								 return (downPt - pt).Length() <= s_VERTEX_SIZE;
+							 });
 	if (iter != _mesher.GetVertexs().end())
 	{
 		_mesher.RemoveVertex(*iter);
-		return true;
+		result = true;
 	}
-	Log("OptRemoveVertex End");
-	return false;
-}
-
-bool MeshWindow::OptWriteToFile(const std::string & fname)
-{
-	Log("OptWriteToFile Begin");
-	std::string buffer;
-	for (const auto & mesh : _meshs)
-	{
-		auto snear = std::string("near ");
-		auto count = std::count(mesh.nears.begin(), mesh.nears.end(), nullptr);
-		for (auto i = 0; i != mesh.nears.size() - count; ++i)
-		{
-			snear.append(std::to_string(std::distance(
-				static_cast<const Mesh *>(_meshs.data()), mesh.nears.at(i))));
-			snear.append(" ");
-		}
-		auto cp = mesh.tri.GetCenterPoint();
-		buffer.append(SFormat("< cp {0} {1} , pt1 {2} {3} , pt2 {4} {5} , pt3 {6} {7} , open {8} , {9}>\n",
-							  cp.x, cp.y, 
-							  mesh.tri.pt1.x, mesh.tri.pt1.y,
-							  mesh.tri.pt2.x, mesh.tri.pt2.y,
-							  mesh.tri.pt3.x, mesh.tri.pt3.y,
-							  (std::uint8_t)mesh.attr, snear));
-	}
-	std::ofstream ofile(fname);
-	ofile << std::noskipws << buffer;
-	ofile.close();
-	Log("OptWriteToFile End");
-	return true;
+	Log("OptRemoveVertex...");
+	return result;
 }
 
 void MeshWindow::OnLButtonUP(int x, int y, u_int key, int wheel)
@@ -221,11 +232,11 @@ void MeshWindow::OnRButtonUP(int x, int y, u_int key, int wheel)
 {
 	if (!OptRemoveVertex(x, y))
 	{
-		OptMeshWindow(x, y);
+		OptMeshModify(x, y);
 	}
 }
 
 void MeshWindow::OnMButtonUP(int x, int y, u_int key, int wheel)
 {
-	OptResetVertex();
+	OptMeshClear();
 }

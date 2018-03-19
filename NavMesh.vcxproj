@@ -145,6 +145,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\astar\astar.cpp" />
     <ClCompile Include="src\editor\mesh_window.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\math\math.cpp" />
