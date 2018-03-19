@@ -140,7 +140,7 @@ void MeshWindow::SaveMesh(const std::vector<Mesh>& meshs, const std::string & fn
 	std::string buffer;
 	for (const auto & mesh : meshs)
 	{
-		auto slink = std::string("link ");
+		auto slink = std::string();
 		auto count = std::count(mesh.links.begin(), mesh.links.end(), nullptr);
 		for (auto i = 0; i != mesh.links.size() - count; ++i)
 		{
@@ -149,12 +149,12 @@ void MeshWindow::SaveMesh(const std::vector<Mesh>& meshs, const std::string & fn
 			slink.append(" ");
 		}
 		auto cp = mesh.tri.GetCenterPoint();
-		buffer.append(SFormat("< cp {0} {1} , pt1 {2} {3} , pt2 {4} {5} , pt3 {6} {7} , {8}>\n",
+		buffer.append(SFormat("< cp {0} {1} , pt1 {2} {3} , pt2 {4} {5} , pt3 {6} {7} , link {8} {9}>\n",
 							  cp.x, cp.y,
 							  mesh.tri.pt1.x, mesh.tri.pt1.y,
 							  mesh.tri.pt2.x, mesh.tri.pt2.y,
 							  mesh.tri.pt3.x, mesh.tri.pt3.y,
-							  slink));
+							  mesh.links.size() - count, slink));
 	}
 	std::ofstream ofile(fname);
 	ofile << std::noskipws << buffer;
