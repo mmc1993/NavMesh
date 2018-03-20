@@ -146,8 +146,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="src\astar\astar.cpp" />
-    <ClCompile Include="src\editor\astar_window.cpp" />
-    <ClCompile Include="src\editor\mesh_window.cpp" />
+    <ClCompile Include="src\window\astar_window.cpp" />
+    <ClCompile Include="src\window\mesh_window.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\math\math.cpp" />
     <ClCompile Include="src\mesher\mesher.cpp" />
@@ -157,9 +157,9 @@
     <ClInclude Include="resource.h" />
     <ClInclude Include="src\astar\astar.h" />
     <ClInclude Include="src\astar\heap_queue.h" />
-    <ClInclude Include="src\editor\astar_window.h" />
+    <ClInclude Include="src\window\astar_window.h" />
     <ClInclude Include="src\base.h" />
-    <ClInclude Include="src\editor\mesh_window.h" />
+    <ClInclude Include="src\window\mesh_window.h" />
     <ClInclude Include="src\math\math.h" />
     <ClInclude Include="src\mesher\mesher.h" />
     <ClInclude Include="src\third\sformat.h" />

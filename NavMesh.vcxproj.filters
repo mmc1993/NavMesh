@@ -27,13 +27,13 @@
     <ClCompile Include="src\mesher\mesher.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\editor\mesh_window.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="src\astar\astar.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\editor\astar_window.cpp">
+    <ClCompile Include="src\window\astar_window.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\window\mesh_window.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -56,16 +56,16 @@
     <ClInclude Include="src\third\sformat.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\editor\mesh_window.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\editor\astar_window.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="src\astar\astar.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\astar\heap_queue.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\window\astar_window.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\window\mesh_window.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

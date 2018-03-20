@@ -18,14 +18,17 @@ public:
 		{ 
 			links.fill(nullptr);
 		}
+
 		Mesh(const math::Triangle & t): tri(t), attr(MeshAttr::kOPEN)
 		{
 			links.fill(nullptr);
 		}
+
 		operator const math::Triangle &() const
 		{
 			return tri;
 		}
+
 		MeshAttr attr;
 		math::Triangle tri;
 		std::array<const Mesh *, 3> links;

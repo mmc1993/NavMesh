@@ -1,13 +1,8 @@
 #include "window/window.h"
-#include "editor/mesh_window.h"
-#include "editor/astar_window.h"
+#include "window/mesh_window.h"
+#include "window/astar_window.h"
 #include "astar/astar.h"
 #include "../resource.h"
-
-BOOL CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM)
-{
-	return FALSE;
-}
 
 int main()
 {
