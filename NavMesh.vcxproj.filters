@@ -68,6 +68,9 @@
     <ClInclude Include="src\window\mesh_window.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="src\dialog\dialog.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="NavMesh.rc">

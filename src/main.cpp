@@ -7,11 +7,11 @@
 int main()
 {
 	//MeshWindow meshWindow;
-	//meshWindow.Create("网格导航", 100, 100, 800, 400);
+	//meshWindow.Create("网格导航", 100, 100, 1280, 640);
 	//meshWindow.Loop();
 
 	AStarWindow astarWindow;
-	astarWindow.Create("astar", 100, 100, 800, 400);
+	astarWindow.Create("astar", 100, 100, 1280, 640);
 	astarWindow.Loop();
 
 	//AStar astar;

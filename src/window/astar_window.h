@@ -20,5 +20,8 @@ private:
 	AStar _astar;
 	math::Vec2 _startpt;
 	std::vector<math::Vec2> _waypoints;
+	std::vector<std::uint16_t> _navmesh;
+
+private:
 	ID2D1SolidColorBrush * _pDxBrush;
 };

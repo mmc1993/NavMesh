@@ -14,6 +14,11 @@ public:
 	{
 		return c.cend();
 	}
+
+	void clear()
+	{
+		c.clear();
+	}
 private:
 
 };
