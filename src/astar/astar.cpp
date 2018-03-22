@@ -47,26 +47,26 @@ bool AStar::GetPath(std::uint16_t startID, const math::Vec2 & startpt,
 					std::vector<std::uint16_t> & navmesh, 
 					std::vector<math::Vec2>& waypoints)
 {
-if (startID >= _meshs.size() || endID >= _meshs.size())
-{
-	return false;
-}
-if (startID == endID)
-{
-	waypoints.push_back(startpt);
-	waypoints.push_back(endpt);
-}
-else
-{
-	_closes.clear();
-	_opens.clear();
-	_opens.emplace(startID, startID, 0, Distance(startpt, endpt));
-	if (GetNavMesh({ endID, 0, 0, 0 }, navmesh))
+	if (startID >= _meshs.size() || endID >= _meshs.size())
 	{
-		GetWayPoints(startpt, endpt, navmesh, waypoints);
+		return false;
 	}
-}
-return !waypoints.empty();
+	if (startID == endID)
+	{
+		waypoints.push_back(startpt);
+		waypoints.push_back(endpt);
+	}
+	else
+	{
+		_closes.clear();
+		_opens.clear();
+		_opens.emplace(startID, startID, 0, Distance(startpt, endpt));
+		if (GetNavMesh({ endID, 0, 0, 0 }, navmesh))
+		{
+			GetWayPoints(startpt, endpt, navmesh, waypoints);
+		}
+	}
+	return !waypoints.empty();
 }
 
 std::uint16_t AStar::GetMeshID(const math::Vec2 & pt) const
@@ -136,112 +136,88 @@ void AStar::GetWayPoints(const math::Vec2 & startpt, const math::Vec2 & endpt,
 						 const std::vector<std::uint16_t> & navmesh,
 						 std::vector<math::Vec2>& waypoints)
 {
-	//	ÐÞ¸Ä¹Õµã¼ÆËã
-	waypoints.push_back(startpt);
-	auto curr = startpt, newcurr = startpt;
-	auto upIdx = (std::uint16_t)navmesh.size() - 1;
-	auto dnIdx = (std::uint16_t)navmesh.size() - 1;
-	auto up = startpt, newup = startpt;
-	auto dn = startpt, newdn = startpt;
-	for (auto i = (int)navmesh.size() - 1; i != -1; --i)
+	auto curr = startpt, up = startpt, dn = startpt;
+	auto upIt = navmesh.crbegin(), dnIt = navmesh.crbegin();
+	auto firstIt = navmesh.crbegin(), lastIt = std::next(navmesh.crend(), -1);
+	while (true)
 	{
-		if (i != 0)
+		waypoints.push_back(curr);
+		auto gwp = GetWayPoint(firstIt, lastIt, upIt, dnIt, up, dn, curr);
+		if (EnumGetWayPointResult::kNONE == gwp)
 		{
-			if (GetWayPoint((std::uint16_t)navmesh.at(i),
-							(std::uint16_t)navmesh.at(i - 1),
-							up, dn, curr, newup, newdn, newcurr))
+			auto ptcheck = CheckSight(curr, up, dn, endpt);
+			if (EnumCheckSightResult::kISIN == ptcheck)
 			{
-				auto [isok, isup] = CheckSight(curr, up, dn, newcurr);
-				if (isok)
-				{
-					waypoints.push_back(curr = newcurr);
-				}
-				else if (isup)
-				{
-					waypoints.push_back(up);
-					i = upIdx; curr = up;
-				}
-				else
-				{
-					waypoints.push_back(dn);
-					i = dnIdx; curr = dn;
-				}
+				waypoints.push_back(endpt); break;
 			}
-			if (up != newup) upIdx = i;
-			if (dn != newdn) dnIdx = i;
-			up = newup; dn = newdn;
+			else if (EnumCheckSightResult::kISUP == ptcheck)
+			{
+				firstIt = dnIt = upIt; curr = dn = up;
+			}
+			else if (EnumCheckSightResult::kISDN == ptcheck)
+			{
+				firstIt = dnIt = upIt; curr = up = dn;
+			}
 		}
-		else
+		else if (EnumGetWayPointResult::kISUP == gwp)
 		{
-			auto [isok, isup] = CheckSight(curr, up, dn, endpt);
-			if (isok)
-			{
-				waypoints.push_back(endpt);
-			}
-			else if (isup)
-			{
-				waypoints.push_back(up);
-				i = upIdx; curr = up;
-			}
-			else
-			{
-				waypoints.push_back(dn);
-				i = dnIdx; curr = dn;
-			}
+			firstIt = dnIt = upIt; curr = dn = up;
+		}
+		else if (EnumGetWayPointResult::kISDN == gwp)
+		{
+			firstIt = upIt = dnIt; curr = up = dn;
 		}
 	}
 }
 
-bool AStar::GetWayPoint(const std::uint16_t cmeshID, const std::uint16_t nmeshID, 
-						const math::Vec2 & up, const math::Vec2 & dn, const math::Vec2 & curr, 
-						math::Vec2 & outup, math::Vec2 & outdn, math::Vec2 & outcurr) const
+AStar::EnumGetWayPointResult AStar::GetWayPoint(std::vector<std::uint16_t>::const_reverse_iterator firstIt,
+												std::vector<std::uint16_t>::const_reverse_iterator lastIt,
+												std::vector<std::uint16_t>::const_reverse_iterator & upIt,
+												std::vector<std::uint16_t>::const_reverse_iterator & dnIt,
+												math::Vec2 & outup, math::Vec2 & outdn, math::Vec2 & outcurr) const
 {
-	const auto &[pt1, pt2] = GetLinkLine(_meshs.at(cmeshID), _meshs.at(nmeshID));
-
-	//	up
-	const auto[isok, isup] = CheckSight(curr, up, dn, pt1);
-	if (isok)
+	for (; firstIt != lastIt; ++firstIt)
 	{
-		outup = pt1;
+		const auto & cmesh = _meshs.at(*std::next(firstIt, 0));
+		const auto & nmesh = _meshs.at(*std::next(firstIt, 1));
+		const auto [pt1, pt2] = GetLinkLine(cmesh, nmesh);
+		auto pt1check = CheckSight(outcurr, outup, outdn, pt1);
+		auto pt2check = CheckSight(outcurr, outup, outdn, pt2);
+		if (EnumCheckSightResult::kISIN == pt1check)
+		{
+			outup = pt1; upIt = firstIt;
+		}
+		else if (EnumCheckSightResult::kISUP == pt1check && EnumCheckSightResult::kISUP == pt2check)
+		{
+			return EnumGetWayPointResult::kISUP;
+		}
+		if (EnumCheckSightResult::kISIN == pt2check)
+		{
+			outdn = pt2; dnIt = firstIt;
+		}
+		else if (EnumCheckSightResult::kISDN == pt2check && EnumCheckSightResult::kISDN == pt1check)
+		{
+			return EnumGetWayPointResult::kISDN;
+		}
 	}
-	else if (isup && std::get<1>(CheckSight(curr, up, dn, pt2)))
-	{
-		outcurr = up;
-		outup = pt1;
-		outdn = pt2;
-		return true;
-	}
-
-	//	dn
-	const auto[isok, isup] = CheckSight(curr, up, dn, pt2);
-	if (isok)
-	{
-		outdn = pt2;
-	}
-	else if (!isup && !std::get<1>(CheckSight(curr, up, dn, pt1)))
-	{
-		outcurr = dn;
-		outup = pt1;
-		outdn = pt2;
-		return true;
-	}
-	return false;
+	return EnumGetWayPointResult::kNONE;
 }
 
-std::tuple<bool, bool> AStar::CheckSight(const math::Vec2 & curr, 
-										 const math::Vec2 & up, 
-										 const math::Vec2 & dn, 
-										 const math::Vec2 & pt) const
+inline AStar::EnumCheckSightResult AStar::CheckSight(const math::Vec2 & curr,
+													 const math::Vec2 & up,
+													 const math::Vec2 & dn,
+													 const math::Vec2 & pt) const
 {
-	auto upSubCurr = up - curr;
-	auto dnSubCurr = dn - curr;
-	auto ptSubCurr = pt - curr;
-	return math::Vec2::s_ZERO != upSubCurr && math::Vec2::s_ZERO != ptSubCurr && upSubCurr.Cross(ptSubCurr) < 0 ? std::make_tuple(false, true)
-		: math::Vec2::s_ZERO != dnSubCurr && math::Vec2::s_ZERO != ptSubCurr && dnSubCurr.Cross(ptSubCurr) >= 0 ? std::make_tuple(false, false)
-		: std::make_tuple(true, true);
+	const auto upcurr = up - curr;
+	const auto dncurr = dn - curr;
+	const auto ptcurr = pt - curr;
+	if (ptcurr.IsZero()) { return EnumCheckSightResult::kISIN; }
+	return !upcurr.IsZero() && upcurr.Cross(ptcurr) < 0 ? EnumCheckSightResult::kISUP
+		: !dncurr.IsZero() && dncurr.Cross(ptcurr) >= 0 ? EnumCheckSightResult::kISDN
+		: EnumCheckSightResult::kISIN;
 }
 
-std::tuple<const math::Vec2&, const math::Vec2&> AStar::GetLinkLine(const Mesh & mesh1, const Mesh & mesh2) const
+inline std::tuple<const math::Vec2&, const math::Vec2&> AStar::GetLinkLine(const Mesh & mesh1, const Mesh & mesh2) const
 {
 	return mesh2.tri.IsExistsLine({ mesh1.tri.pt1, mesh1.tri.pt2 }) ? std::make_tuple(std::cref(mesh1.tri.pt1), std::cref(mesh1.tri.pt2))
 		: mesh2.tri.IsExistsLine({ mesh1.tri.pt2, mesh1.tri.pt3 }) ? std::make_tuple(std::cref(mesh1.tri.pt2), std::cref(mesh1.tri.pt3))

@@ -90,6 +90,11 @@ public:
 		return {};
 	}
 
+	bool IsZero() const
+	{
+		return *this == s_ZERO;
+	}
+
 	float x, y;
 };
 

@@ -6,6 +6,18 @@
 
 class AStar {
 public:
+	enum class EnumGetWayPointResult {
+		kNONE,	//	Œﬁ
+		kISUP,	//	up
+		kISDN,	//	dn
+	};
+
+	enum class EnumCheckSightResult {
+		kISIN,	//	¿Ô√Ê
+		kISUP,	//	up ≤‡
+		kISDN,	//	dn ≤‡
+	};
+
 	struct Mesh {
 		std::uint16_t ID;
 		math::Vec2 center;
@@ -66,18 +78,17 @@ private:
 	void GetWayPoints(const math::Vec2 & startpt, const math::Vec2 & endpt, 
 					  const std::vector<std::uint16_t> & navmesh, 
 					  std::vector<math::Vec2> & waypoints);
-	bool GetWayPoint(const std::uint16_t cmeshID, 
-					 const std::uint16_t nmeshID,
-					 const math::Vec2 & up, 
-					 const math::Vec2 & dn,
-					 const math::Vec2 & curr,
-					 math::Vec2 & outup,
-					 math::Vec2 & outdn,
-					 math::Vec2 & outcurr) const;
-	std::tuple<bool, bool> CheckSight(const math::Vec2 & curr, 
-									  const math::Vec2 & up, 
-									  const math::Vec2 & dn, 
-									  const math::Vec2 & pt) const;
+	EnumGetWayPointResult GetWayPoint(std::vector<std::uint16_t>::const_reverse_iterator firstIt,
+									  std::vector<std::uint16_t>::const_reverse_iterator lastIt,
+									  std::vector<std::uint16_t>::const_reverse_iterator & upIt,
+									  std::vector<std::uint16_t>::const_reverse_iterator & dnIt,
+									  math::Vec2 & outup,
+									  math::Vec2 & outdn,
+									  math::Vec2 & outcurr) const;
+	EnumCheckSightResult CheckSight(const math::Vec2 & curr,
+									const math::Vec2 & up,
+									const math::Vec2 & dn,
+									const math::Vec2 & pt) const;
 	std::tuple<const math::Vec2 &, const math::Vec2 &> GetLinkLine(const Mesh & mesh1,
 																   const Mesh & mesh2) const;
 private:

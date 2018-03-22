@@ -8,14 +8,52 @@
 
 
 
-upIdx = count - 1;
-dnIdx = count - 1;
+upIdx = navmesh.begin();
+dnIdx = navmesh.begin();
 curr = startpt;
 up = startpt;
 dn = startpt;
+i = count - 1;
 
-while (i != -1)
+
+while (waypoint.back() != endpt)
 {
+	while (true)
+	{
+		push curr
+		auto ret = GetWayPoint(firstIt, lastIt, up, upIt, dn, dnIt, curr)
+		if (0 == ret) 
+		{
+			break; 
+		}
+		else if (1 == ret)
+		{	push up;
+			dn = up;
+		}
+		else if (2 == ret)
+		{
+
+		}
+	}
+}
+
+
+
+
+
+
+	if GetWayPoint(meshIter, up, upIdx, dn, dnIdx, curr)
+	{
+
+	}
+
+
+	push curr
+	if (GetWayPoint(meshIter, curr, up, dn, waypt))
+	{
+
+	}
+
 	push curr
 	if (i != 0)
 	{
