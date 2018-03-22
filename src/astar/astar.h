@@ -66,8 +66,20 @@ private:
 	void GetWayPoints(const math::Vec2 & startpt, const math::Vec2 & endpt, 
 					  const std::vector<std::uint16_t> & navmesh, 
 					  std::vector<math::Vec2> & waypoints);
-	std::tuple<const math::Vec2 &, const math::Vec2 &> GetLinkLine(const Mesh & mesh1, const Mesh & mesh2) const;
-
+	bool GetWayPoint(const std::uint16_t cmeshID, 
+					 const std::uint16_t nmeshID,
+					 const math::Vec2 & up, 
+					 const math::Vec2 & dn,
+					 const math::Vec2 & curr,
+					 math::Vec2 & outup,
+					 math::Vec2 & outdn,
+					 math::Vec2 & outcurr) const;
+	std::tuple<bool, bool> CheckSight(const math::Vec2 & curr, 
+									  const math::Vec2 & up, 
+									  const math::Vec2 & dn, 
+									  const math::Vec2 & pt);
+	std::tuple<const math::Vec2 &, const math::Vec2 &> GetLinkLine(const Mesh & mesh1,
+																   const Mesh & mesh2) const;
 private:
 	std::vector<Mesh> _meshs;
 	HeapQueue<WayPoint> _opens;
