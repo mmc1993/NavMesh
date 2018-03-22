@@ -77,7 +77,7 @@ private:
 	std::tuple<bool, bool> CheckSight(const math::Vec2 & curr, 
 									  const math::Vec2 & up, 
 									  const math::Vec2 & dn, 
-									  const math::Vec2 & pt);
+									  const math::Vec2 & pt) const;
 	std::tuple<const math::Vec2 &, const math::Vec2 &> GetLinkLine(const Mesh & mesh1,
 																   const Mesh & mesh2) const;
 private:

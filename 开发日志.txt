@@ -8,3 +8,33 @@
 
 
 
+upIdx = count - 1;
+dnIdx = count - 1;
+curr = startpt;
+up = startpt;
+dn = startpt;
+
+while (i != -1)
+{
+	push curr
+	if (i != 0)
+	{
+		if GetWayPoint(meshIter, curr, up, dn, waypt)
+			curr = waypt;
+			up = waypt;
+			dn = waypt;
+	}
+	else
+	{
+		isok, isup = CheckSight(curr, up, dn, endpt);
+		if (isok)
+			push endpt;
+		else
+		{
+			push (isup? up: dn);
+			curr = isup? up: dn;
+			up = isup? up: dn;
+			dn = isup? up: dn;
+		}
+	}
+}

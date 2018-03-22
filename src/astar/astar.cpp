@@ -138,48 +138,42 @@ void AStar::GetWayPoints(const math::Vec2 & startpt, const math::Vec2 & endpt,
 {
 	//	修改拐点计算
 	waypoints.push_back(startpt);
-	auto currIdx = navmesh.size() - 1;
 	auto curr = startpt, newcurr = startpt;
+	auto upIdx = (std::uint16_t)navmesh.size() - 1;
+	auto dnIdx = (std::uint16_t)navmesh.size() - 1;
 	auto up = startpt, newup = startpt;
 	auto dn = startpt, newdn = startpt;
-	GetWayPoint((std::uint16_t)navmesh.at(currIdx),
-				(std::uint16_t)navmesh.at(currIdx - 1),
-				up, dn, curr, up, dn, curr);
-	for (auto i = (int)currIdx - 1; i != -1; --i)
+	for (auto i = (int)navmesh.size() - 1; i != -1; --i)
 	{
 		if (i != 0)
 		{
-			if (GetWayPoint(
-				(std::uint16_t)navmesh.at(i),
-				(std::uint16_t)navmesh.at(i - 1),
-				newup, newdn, curr, newup, newdn, newcurr))
+			if (GetWayPoint((std::uint16_t)navmesh.at(i),
+							(std::uint16_t)navmesh.at(i - 1),
+							up, dn, curr, newup, newdn, newcurr))
 			{
-				auto[isok, isup] = CheckSight(curr, up, dn, newcurr);
+				auto [isok, isup] = CheckSight(curr, up, dn, newcurr);
 				if (isok)
 				{
-					waypoints.push_back(newcurr);
-					curr = newcurr;
-					currIdx = i;
-					up = newup;
-					dn = newdn;
+					waypoints.push_back(curr = newcurr);
 				}
 				else if (isup)
 				{
 					waypoints.push_back(up);
-					curr = newup = newdn = up;
-					i = currIdx;
+					i = upIdx; curr = up;
 				}
 				else
 				{
 					waypoints.push_back(dn);
-					curr = newup = newdn = dn;
-					i = currIdx;
+					i = dnIdx; curr = dn;
 				}
 			}
+			if (up != newup) upIdx = i;
+			if (dn != newdn) dnIdx = i;
+			up = newup; dn = newdn;
 		}
 		else
 		{
-			auto[isok, isup] = CheckSight(curr, newup, newdn, endpt);
+			auto [isok, isup] = CheckSight(curr, up, dn, endpt);
 			if (isok)
 			{
 				waypoints.push_back(endpt);
@@ -187,14 +181,12 @@ void AStar::GetWayPoints(const math::Vec2 & startpt, const math::Vec2 & endpt,
 			else if (isup)
 			{
 				waypoints.push_back(up);
-				curr = newup = newdn = up;
-				i = currIdx;
+				i = upIdx; curr = up;
 			}
 			else
 			{
 				waypoints.push_back(dn);
-				curr = newup = newdn = dn;
-				i = currIdx;
+				i = dnIdx; curr = dn;
 			}
 		}
 	}
@@ -205,38 +197,47 @@ bool AStar::GetWayPoint(const std::uint16_t cmeshID, const std::uint16_t nmeshID
 						math::Vec2 & outup, math::Vec2 & outdn, math::Vec2 & outcurr) const
 {
 	const auto &[pt1, pt2] = GetLinkLine(_meshs.at(cmeshID), _meshs.at(nmeshID));
-	//	更新 left
-	if (up - curr == math::Vec2::s_ZERO || (up - curr).Cross(pt1 - curr) > 0)
+
+	//	up
+	const auto[isok, isup] = CheckSight(curr, up, dn, pt1);
+	if (isok)
 	{
 		outup = pt1;
 	}
-	else if ((up - curr).Cross(pt2 - curr) < 0)
+	else if (isup && std::get<1>(CheckSight(curr, up, dn, pt2)))
 	{
-		outcurr = up; 
-		outup = pt1; 
-		outdn = pt2; 
+		outcurr = up;
+		outup = pt1;
+		outdn = pt2;
 		return true;
 	}
 
-	//	更新 right
-	if (dn - curr == math::Vec2::s_ZERO || (dn - curr).Cross(pt2 - curr) < 0)
+	//	dn
+	const auto[isok, isup] = CheckSight(curr, up, dn, pt2);
+	if (isok)
 	{
 		outdn = pt2;
 	}
-	else if ((dn - curr).Cross(pt1 - curr) > 0)
+	else if (!isup && !std::get<1>(CheckSight(curr, up, dn, pt1)))
 	{
-		outcurr = dn; 
-		outup = pt1; 
-		outdn = pt2; 
+		outcurr = dn;
+		outup = pt1;
+		outdn = pt2;
 		return true;
 	}
 	return false;
 }
 
-std::tuple<bool, bool> AStar::CheckSight(const math::Vec2 & curr, const math::Vec2 & up, const math::Vec2 & dn, const math::Vec2 & pt)
+std::tuple<bool, bool> AStar::CheckSight(const math::Vec2 & curr, 
+										 const math::Vec2 & up, 
+										 const math::Vec2 & dn, 
+										 const math::Vec2 & pt) const
 {
-	return (up != curr && (up - curr).Cross(pt - curr) < 0) ? std::make_tuple(false, true)
-		: (dn != curr && (dn - curr).Cross(pt - curr) >= 0) ? std::make_tuple(false, false)
+	auto upSubCurr = up - curr;
+	auto dnSubCurr = dn - curr;
+	auto ptSubCurr = pt - curr;
+	return math::Vec2::s_ZERO != upSubCurr && math::Vec2::s_ZERO != ptSubCurr && upSubCurr.Cross(ptSubCurr) < 0 ? std::make_tuple(false, true)
+		: math::Vec2::s_ZERO != dnSubCurr && math::Vec2::s_ZERO != ptSubCurr && dnSubCurr.Cross(ptSubCurr) >= 0 ? std::make_tuple(false, false)
 		: std::make_tuple(true, true);
 }
 

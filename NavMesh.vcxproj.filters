@@ -27,13 +27,13 @@
     <ClCompile Include="src\mesher\mesher.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="src\astar\astar.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="src\window\astar_window.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="src\window\mesh_window.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\astar\astar.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
