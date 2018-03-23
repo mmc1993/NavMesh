@@ -14,8 +14,6 @@ int main()
 	astarWindow.Create("astar", 100, 100, 1280, 640);
 	astarWindow.Loop();
 
-	//AStar astar;
-	//astar.InitFromFile("nav.txt");
 	return 0;
 }
 
