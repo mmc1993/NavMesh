@@ -83,23 +83,11 @@ const std::vector<AStar::Mesh>& AStar::GetMeshs() const
 	return _meshs;
 }
 
-bool AStar::IsNewWayPoint(std::uint16_t id) const
-{
-	auto comp = [id](const WayPoint & wp) { return wp.ID == id; };
-	return _opens.cend() == std::find_if(_opens.cbegin(), _opens.cend(), comp)
-		&& _closes.cend() == std::find_if(_closes.cbegin(), _closes.cend(), comp);
-}
-
-inline std::uint32_t AStar::Distance(const math::Vec2 & a, const math::Vec2 & b) const
-{
-	return (std::uint32_t)(std::abs(b.x - a.x) + std::abs(b.y - a.y));
-}
-
 bool AStar::GetNavMesh(const WayPoint & endWayPoint, std::vector<std::uint16_t>& navmesh)
 {
 	while (!_opens.empty())
 	{
-		auto top = _opens.top();
+		const auto top = _opens.top();
 		_closes.push_back(top);
 		_opens.pop();
 		if (top.ID == endWayPoint.ID) { break; }
@@ -132,13 +120,14 @@ bool AStar::GetNavMesh(const WayPoint & endWayPoint, std::vector<std::uint16_t>&
 	return !navmesh.empty();
 }
 
-void AStar::GetWayPoints(const math::Vec2 & startpt, const math::Vec2 & endpt,
+void AStar::GetWayPoints(const math::Vec2 & startpt, 
+						 const math::Vec2 & endpt,
 						 const std::vector<std::uint16_t> & navmesh,
 						 std::vector<math::Vec2>& waypoints)
 {
 	auto curr = startpt, up = startpt, dn = startpt;
 	auto upIt = navmesh.crbegin(), dnIt = navmesh.crbegin();
-	auto firstIt = navmesh.crbegin(), lastIt = std::next(navmesh.crend(), -1);
+	auto firstIt = navmesh.crbegin(), lastIt = std::prev(navmesh.crend());
 	while (true)
 	{
 		waypoints.push_back(curr);
@@ -178,9 +167,9 @@ AStar::EnumGetWayPointResult AStar::GetWayPoint(std::vector<std::uint16_t>::cons
 {
 	for (; firstIt != lastIt; ++firstIt)
 	{
-		const auto & cmesh = _meshs.at(*std::next(firstIt, 0));
-		const auto & nmesh = _meshs.at(*std::next(firstIt, 1));
-		const auto [pt1, pt2] = GetLinkLine(cmesh, nmesh);
+		const auto & cmesh = _meshs.at(*firstIt);
+		const auto & nmesh = _meshs.at(*std::next(firstIt));
+		const auto & [pt1, pt2] = GetLinkLine(cmesh, nmesh);
 		auto pt1check = CheckSight(outcurr, outup, outdn, pt1);
 		auto pt2check = CheckSight(outcurr, outup, outdn, pt2);
 		if (EnumCheckSightResult::kISIN == pt1check)
@@ -222,4 +211,16 @@ inline std::tuple<const math::Vec2&, const math::Vec2&> AStar::GetLinkLine(const
 	return mesh2.tri.IsExistsLine({ mesh1.tri.pt1, mesh1.tri.pt2 }) ? std::make_tuple(std::cref(mesh1.tri.pt1), std::cref(mesh1.tri.pt2))
 		: mesh2.tri.IsExistsLine({ mesh1.tri.pt2, mesh1.tri.pt3 }) ? std::make_tuple(std::cref(mesh1.tri.pt2), std::cref(mesh1.tri.pt3))
 		: std::make_tuple(std::cref(mesh1.tri.pt3), std::cref(mesh1.tri.pt1));
+}
+
+inline std::uint32_t AStar::Distance(const math::Vec2 & a, const math::Vec2 & b) const
+{
+	return (std::uint32_t)(std::abs(b.x - a.x) + std::abs(b.y - a.y));
+}
+
+inline bool AStar::IsNewWayPoint(std::uint16_t id) const
+{
+	auto comp = [id](const WayPoint & wp) { return wp.ID == id; };
+	return _opens.cend() == std::find_if(_opens.cbegin(), _opens.cend(), comp)
+		&& _closes.cend() == std::find_if(_closes.cbegin(), _closes.cend(), comp);
 }
